@@ -16,6 +16,7 @@ import {
   InputLabel,
   FormControl,
   Dialog,
+  Chip,
 } from "@mui/material";
 import UploadIcon from "@mui/icons-material/Upload";
 import React, { useState, useEffect } from "react";
@@ -23,6 +24,8 @@ import BASE_API_URL from "../config";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import AddCategory from "./AddCategory";
+import { useDropzone } from "react-dropzone";
+import axios from "axios"; // or use your preferred library for making HTTP requests
 
 function AddNewProduct() {
   const [files, setFiles] = useState([]);
@@ -38,47 +41,54 @@ function AddNewProduct() {
   const [availableProducts, setAvailableProducts] = useState(0);
   const [active, setActive] = useState(true);
   const [options, setOptions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [allProds, setAllProds] = useState([]);
+  const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  // const [open, setOpen] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
 
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
+  const handleDescriptionChange = (value) => {
+    setDescription(value);
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${BASE_API_URL}/get_categories`);
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const response = await axios.get(`${BASE_API_URL}/all_products`);
+        setAllProds(response.data);
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+    fetchOptions();
+  }, []);
 
   const handleCategoryChange = (event) => {
     const value = event.target.value;
-    if (value === 'add_new') {
+    if (value === "add_new") {
       handleClickOpen();
     } else {
       setCategory(value);
     }
   };
-
-  useEffect(() => {
-    const fetchOptions = async () => {
-      try {
-        const response = await fetch(`${BASE_API_URL}/suggested_products`);
-        if (!response.ok) throw new Error("Network response was not ok");
-        const result = await response.json();
-        setOptions(
-          result.map((item) => ({
-            label: item.product_title,
-            id: item.product_id,
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching options:", error);
-      }
-    };
-
-    fetchOptions();
-  }, []);
 
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
@@ -88,7 +98,7 @@ function AddNewProduct() {
   const handleUploadImages = async () => {
     if (files.length === 0) {
       console.error("No files selected");
-      return;
+      return [];
     }
 
     const formData = new FormData();
@@ -102,7 +112,7 @@ function AddNewProduct() {
 
       if (!response.ok) throw new Error("Network response was not ok");
       const result = await response.json();
-      return result.url;
+      return result.url || [];
     } catch (error) {
       console.error("Error uploading files:", error);
       throw error;
@@ -110,8 +120,22 @@ function AddNewProduct() {
   };
 
   const handleSubmitProduct = async () => {
-    setLoading(true);
+    // Check if required fields are filled
+    if (
+      !title ||
+      !description ||
+      !category ||
+      !price ||
+      !availableProducts ||
+      files.length === 0
+    ) {
+      setSnackbarMessage("Please fill in all required fields.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
 
+    setLoading(true);
     try {
       const imageUrls = await handleUploadImages();
       setUploadedImageUrls(imageUrls);
@@ -119,7 +143,7 @@ function AddNewProduct() {
       const productData = {
         product_image_list: imageUrls,
         suggested_products_list: selectedOptions
-          .map((option) => option.id)
+          .map((option) => option.product_id) // Adjust this field as needed
           .join(", "),
         category,
         sub_categories: subCategory,
@@ -142,8 +166,10 @@ function AddNewProduct() {
       console.log("Product added successfully:", result);
 
       setSnackbarMessage("New product added successfully!");
+      setSnackbarSeverity("success");
       setSnackbarOpen(true);
 
+      // Reset state
       setFiles([]);
       setTitle("");
       setDescription("");
@@ -156,20 +182,16 @@ function AddNewProduct() {
       setSelectedOptions([]);
     } catch (error) {
       console.error("Error adding product:", error);
+      setSnackbarMessage("Error adding product.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const [open, setOpen] = useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const handleClickOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   const handlePriceChange = (event) => {
     const value = event.target.value;
@@ -196,31 +218,52 @@ function AddNewProduct() {
     setSelectedOptions(newValue);
   };
 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (acceptedFiles) =>
+      setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]),
+    accept: "image/*",
+  });
+
   return (
     <Grid container spacing={3}>
       <Grid
-        item
-        xs={12}
+        m={3}
+        container
         sx={{
-          flex: "1 1 0", // Flex-grow, flex-shrink, flex-basis
-          justifyContent: "flex-start", // Align content to the left
-          alignItems: "flex-start", // Align content to the top
-          display: "flex",
-          flexDirection: "column", // Stack elements vertically
-          paddingLeft: "25px", // Add some padding for spacing
+          alignItems: "center", // Vertically center align items
         }}
       >
-        <Typography
+        <Grid
+          item
+          xs={6}
           sx={{
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            fontSize: "40px",
-            fontWeight: 500,
-            display: "block",
+            display: "flex",
+            alignItems: "bottom", // Center items vertically
           }}
-          className="headingname"
         >
-          Add new product
-        </Typography>
+          <Typography
+            sx={{
+              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+              fontSize: "40px",
+              fontWeight: 500,
+            }}
+          >
+            Add new product
+          </Typography>
+        </Grid>
+
+        <Grid
+          item
+          xs={6}
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end", // Align buttons to the right
+          }}
+        >
+          <Button variant="contained" onClick={handleSubmitProduct}>
+            Submit
+          </Button>
+        </Grid>
       </Grid>
 
       <Grid
@@ -233,33 +276,73 @@ function AddNewProduct() {
           paddingLeft: "25px", // Add some padding for spacing
         }}
       >
-        {/* <Box className="b" p={2}>
-          <Grid item xs={12}>
-            <Typography
-              mb={1}
+        <Stack spacing={3}>
+          <Box p={3} className="b">
+            <Grid item xs={12} className="bb">
+              <Typography
+                mb={1}
+                sx={{
+                  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                  fontSize: "20px",
+                  textAlign: "left", // Ensures text is aligned to the left
+                  fontWeight: 500,
+                }}
+              >
+                Thumbnail
+              </Typography>
+            </Grid>
+
+            <Box
+              mt={2}
+              {...getRootProps()}
               sx={{
-                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                fontSize: "20px",
-                textAlign: "left", // Ensures text is aligned to the left
-                fontWeight: 500,
+                border: "2px dashed #90caf9",
+                borderRadius: 2,
+                padding: 2,
+                textAlign: "center",
+                backgroundColor: isDragActive ? "#e3f2fd" : "#fafafa",
+                cursor: "pointer",
               }}
             >
-              Thumbnail
-            </Typography>
-          </Grid>
-          <Box sx={{ mb: 2 }}>
-            <input
-              type="file"
-              id="file-upload"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
+              <input {...getInputProps()} />
+              <Typography
+                variant="body2"
+                sx={{ color: isDragActive ? "#1976d2" : "#000" }}
+              >
+                {isDragActive
+                  ? "Drop the files here ..."
+                  : "Drag & drop some files here, or click to select files"}
+              </Typography>
+              <IconButton
+                color="primary"
+                component="span"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  backgroundColor: "#e3f2fd",
+                  padding: 1,
+                  borderRadius: 1,
+                  mt: 1,
+                }}
+              >
+                <UploadIcon />
+                <Typography variant="button">Choose Files</Typography>
+              </IconButton>
+            </Box>
 
-            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
               {files.map((file, index) => (
-                <Box key={index} sx={{ width: 80, height: 80 }}>
+                <Box
+                  key={index}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    boxShadow: 3,
+                  }}
+                >
                   <img
                     src={URL.createObjectURL(file)}
                     alt={`preview ${index}`}
@@ -272,71 +355,49 @@ function AddNewProduct() {
                 </Box>
               ))}
             </Box>
+          </Box>
 
-            <label htmlFor="file-upload">
-              <IconButton
-                color="primary"
-                component="span"
+          <Box sx={{ mb: 2 }} className="b" p={3}>
+            <Grid item xs={12} className="bb">
+              <Typography
+                mb={1}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  backgroundColor: "#e3f2fd",
-                  padding: 1,
-                  borderRadius: 1,
+                  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                  fontSize: "20px",
+                  textAlign: "left", // Ensures text is aligned to the left
+                  fontWeight: 500,
                 }}
               >
-                <UploadIcon />
-                <Typography variant="button">Choose Files</Typography>
-              </IconButton>
-            </label>
-          </Box>
-        </Box> */}
-        <Box sx={{ mb: 2 }} className="b" p={3}>
-          <Grid item xs={12} className="bb">
-            <Typography
-              mb={1}
-              sx={{
-                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                fontSize: "20px",
-                textAlign: "left", // Ensures text is aligned to the left
-                fontWeight: 500,
-              }}
-            >
-              Product Details
-            </Typography>
-          </Grid>
+                Product Details
+              </Typography>
+            </Grid>
 
-          <Stack spacing={2} mt={2}>
-  
-
-          <TextField
-            labelId="category-label"
-            id="category"
-            select
-            size="small"
-            value={category}
-            onChange={handleCategoryChange}
-            label="Category"
-            helperText="Select a category from the dropdown."
-
-          >
-            {/* Replace these with actual category values */}
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            <MenuItem value="category1">Category 1</MenuItem>
-            <MenuItem value="category2">Category 2</MenuItem>
-            {/* Add more categories here */}
-            <MenuItem value="add_new">Add new Category</MenuItem>
-          </TextField>
+            <Stack spacing={2} mt={2}>
+              <TextField
+                labelId="category-label"
+                id="category"
+                select
+                size="small"
+                value={category}
+                onChange={handleCategoryChange}
+                label="Category"
+                helperText="Select a category from the dropdown."
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.category}>
+                    {cat.category}
+                  </MenuItem>
+                ))}
+                <MenuItem value="add_new">Add new Category</MenuItem>
+              </TextField>
 
               {/* Dialog for the AddCategory component */}
               <Dialog open={open} onClose={handleClose}>
-                <AddCategory />
+                <AddCategory onClose={handleClose} />
               </Dialog>
-          </Stack>
-        </Box>
+            </Stack>
+          </Box>
+        </Stack>
       </Grid>
 
       <Grid item xs={12} sm={8}>
@@ -367,7 +428,7 @@ function AddNewProduct() {
             />
             <ReactQuill
               value={description}
-              // onChange={handleDescriptionChange}
+              onChange={handleDescriptionChange}
               placeholder="Write your description here..."
               modules={{
                 toolbar: [
@@ -392,17 +453,6 @@ function AddNewProduct() {
               ]}
             />
           </Stack>
-
-          {/* <Box sx={{ mb: 2 }}>
-            <TextField
-              id="subCategory"
-              label="Sub Category"
-              variant="outlined"
-              fullWidth
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
-            />
-          </Box> */}
           <Box sx={{ mb: 2 }}>
             <TextField
               id="availableProducts"
@@ -416,6 +466,32 @@ function AddNewProduct() {
               helperText="No of products available."
             />
           </Box>
+          <Autocomplete
+            multiple
+            id="suggested_prods"
+            options={allProds}
+            getOptionLabel={(option) => option.product_title} // Adjust based on actual field names
+            value={selectedOptions}
+            size="small"
+            onChange={handleChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                label="Suggested Products"
+                placeholder="Select products"
+              />
+            )}
+            renderTags={(value, getTagProps) =>
+              value.map((option) => (
+                <Chip
+                  label={option.product_title} // Ensure this matches the field from your API response
+                  {...getTagProps({ index: value.indexOf(option) })} // Use index for key here
+                  key={option.product_id} // Ensure this is unique
+                />
+              ))
+            }
+          />
 
           <Grid item xs={12} className="bb">
             <Typography
@@ -430,7 +506,6 @@ function AddNewProduct() {
               Price details
             </Typography>
           </Grid>
-
           <Box sx={{ mb: 2 }}>
             <TextField
               id="price"
@@ -466,59 +541,24 @@ function AddNewProduct() {
             />
           </Box>
         </Stack>
+
+        <div>
+          {loading && <CircularProgress />}
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+          >
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={snackbarSeverity}
+              sx={{ width: "100%" }}
+            >
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
+        </div>
       </Grid>
-      {/* <Grid item xs={12}>
-        <Autocomplete
-          multiple
-          id="suggested-products"
-          options={options}
-          getOptionLabel={(option) => option.label}
-          value={selectedOptions}
-          onChange={handleChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              variant="outlined"
-              label="Suggested Products"
-              placeholder="Choose suggested products..."
-            />
-          )}
-        />
-      </Grid> */}
-      {/* <Grid item xs={12} sx={{ textAlign: "right" }}>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ mr: 2 }}
-          onClick={handleSubmitProduct}
-        >
-          Save Product
-        </Button>
-        <Button variant="outlined" color="secondary">
-          Cancel
-        </Button>
-      </Grid> */}
-
-      {/* <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop> */}
     </Grid>
   );
 }
