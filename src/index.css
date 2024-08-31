@@ -123,3 +123,10 @@ body {
  font-size: 14px;
  display: block;
 }
+
+
+.addCategory
+{
+  width: 150px;
+  height: 5px;
+}

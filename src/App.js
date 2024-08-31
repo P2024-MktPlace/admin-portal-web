@@ -17,7 +17,7 @@ function App() {
 
   return (
     <div className="App">
-      {isLoggedIn ? (
+      {!isLoggedIn ? (
         <DashBoard />
       ) : (
         <Box

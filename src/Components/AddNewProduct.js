@@ -41,6 +41,24 @@ function AddNewProduct() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  // const [open, setOpen] = useState(false);
+
+  // const handleClickOpen = () => {
+  //   setOpen(true);
+  // };
+
+  // const handleClose = () => {
+  //   setOpen(false);
+  // };
+
+  const handleCategoryChange = (event) => {
+    const value = event.target.value;
+    if (value === 'add_new') {
+      handleClickOpen();
+    } else {
+      setCategory(value);
+    }
+  };
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -290,51 +308,33 @@ function AddNewProduct() {
           </Grid>
 
           <Stack spacing={2} mt={2}>
-            <Box
-              sx={{
-                textAlign: "right", // Aligns the button to the right within the Box
-              }}
-            >
-              <Button
-                onClick={handleClickOpen}
-                sx={{
-                  padding: 0, // Removes default padding from the Button
-                  textTransform: "none", // Keeps the text as is (no uppercase)
-                  minWidth: "unset", // Removes the minimum width to match the Typography size
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily:
-                      "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                    backgroundColor: "#74adf7", // Background color for the Typography
-                    fontSize: "12px",
-                    padding: "7px", // Adds padding inside the Typography for spacing
-                    borderRadius: 1, // Adds border-radius for rounded corners
-                    fontWeight: 500,
-                    color: "black",
-                    display: "inline-block", // Ensures the background color doesn't stretch across the entire Box
-                  }}
-                >
-                  Add new Category
-                </Typography>
-              </Button>
+  
+
+          <TextField
+            labelId="category-label"
+            id="category"
+            select
+            size="small"
+            value={category}
+            onChange={handleCategoryChange}
+            label="Category"
+            helperText="Select a category from the dropdown."
+
+          >
+            {/* Replace these with actual category values */}
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            <MenuItem value="category1">Category 1</MenuItem>
+            <MenuItem value="category2">Category 2</MenuItem>
+            {/* Add more categories here */}
+            <MenuItem value="add_new">Add new Category</MenuItem>
+          </TextField>
 
               {/* Dialog for the AddCategory component */}
               <Dialog open={open} onClose={handleClose}>
                 <AddCategory />
               </Dialog>
-            </Box>
-            <TextField
-              id="category"
-              label="Category"
-              variant="outlined"
-              fullWidth
-              size="small"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              helperText="Select a category from the dropdown."
-            />
           </Stack>
         </Box>
       </Grid>
@@ -417,6 +417,20 @@ function AddNewProduct() {
             />
           </Box>
 
+          <Grid item xs={12} className="bb">
+            <Typography
+              mb={1}
+              sx={{
+                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                fontSize: "20px",
+                textAlign: "left", // Ensures text is aligned to the left
+                fontWeight: 500,
+              }}
+            >
+              Price details
+            </Typography>
+          </Grid>
+
           <Box sx={{ mb: 2 }}>
             <TextField
               id="price"
@@ -426,7 +440,7 @@ function AddNewProduct() {
               value={price}
               onChange={handlePriceChange}
               size="small"
-              helperText="Set product price."
+              helperText="Set product base price."
             />
           </Box>
           <Box sx={{ mb: 2 }}>
@@ -438,7 +452,7 @@ function AddNewProduct() {
               value={discount}
               onChange={handleDiscountChange}
               size="small"
-              helperText="Set product discount percentage. "
+              helperText="Set product discount percentage if applicable. "
             />
           </Box>
           <Box sx={{ mb: 2 }}>
