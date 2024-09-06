@@ -1,9 +1,9 @@
-import * as React from "react";
+import React from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import axios from "axios";
-import { Grid, TextField, Box, Typography, Link } from "@mui/material";
+import { Grid, TextField, Box, Typography, Button } from "@mui/material";
 import BASE_API_URL from "../config";
-// import { useNavigate } from "react-router-dom";/
+import ViewAndEdit from "./ViewAndEdit"; // Import the modal component
 
 function ProductSearch() {
   const [rows, setRows] = React.useState([]);
@@ -11,7 +11,9 @@ function ProductSearch() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState("");
-  // const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [selectedProductId, setSelectedProductId] = React.useState(null);
+  const [selectedProductData, setSelectedProductData] = React.useState(null);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -20,16 +22,14 @@ function ProductSearch() {
         const data = response.data;
 
         if (data.length > 0) {
-          // Generate columns based on keys from the first item in the data array
           const keys = Object.keys(data[0]);
           const generatedColumns = keys.map((key) => ({
             field: key,
             headerName:
               key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
-            flex: key === "product_title" ? 0 : 1, // Adjust flex for specific column
-            width: key === "product_title" ? 250 : "auto", // Set specific width for product_title
+            flex: key === "product_title" ? 0 : 1,
+            width: key === "product_title" ? 250 : "auto",
             renderCell: (params) => {
-              // Special handling for "Available products" column
               if (key === "available_products") {
                 return (
                   <div style={{ whiteSpace: "normal", wordWrap: "break-word" }}>
@@ -42,7 +42,6 @@ function ProductSearch() {
                 );
               }
 
-              // Special handling for image URLs
               if (key === "product_image_list" && params.value) {
                 return (
                   <div>
@@ -71,20 +70,21 @@ function ProductSearch() {
             },
           }));
 
-          // Add a custom column for redirection
           generatedColumns.push({
             field: "details",
             headerName: "Details",
             flex: 1,
             renderCell: (params) => (
-              <Link
-                href="#"
-                // onClick={() => navigate(`/product/product_id:${params.row.id}`)}
-                underline="none"
+              <Button
+                onClick={() => {
+                  setSelectedProductId(params.row.product_id); // Set the selected product ID
+                  setSelectedProductData(params.row); // Set the selected product data
+                  setModalOpen(true); // Open the modal
+                }}
                 style={{ cursor: "pointer", fontWeight: "bold" }}
               >
                 View
-              </Link>
+              </Button>
             ),
           });
 
@@ -112,6 +112,12 @@ function ProductSearch() {
     )
   );
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedProductId(null);
+    setSelectedProductData(null);
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
@@ -131,8 +137,8 @@ function ProductSearch() {
             fontSize: "40px",
             fontWeight: 500,
             display: "block",
-            justifyContent: "flex-start", // Align content to the left
-            alignItems: "flex-start", // Align content to the top
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
             display: "flex",
           }}
           className="headingname"
@@ -147,7 +153,7 @@ function ProductSearch() {
               placeholder="Search products..."
               value={searchTerm}
               onChange={handleSearch}
-              size="small" // Make the TextField smaller in height
+              size="small"
             />
           </Grid>
           <Grid item xs={4}>
@@ -171,22 +177,30 @@ function ProductSearch() {
             borderRadius: 2,
             boxShadow: 3,
             "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f0f0f0", // Background color of header
+              backgroundColor: "#f0f0f0",
             },
             "& .MuiDataGrid-columnHeaderTitle": {
-              fontWeight: "bold", // Make the header text bold
+              fontWeight: "bold",
             },
             "& .MuiDataGrid-cell": {
               whiteSpace: "normal",
               wordWrap: "break-word",
-              lineHeight: "1.2", // Adjust line height to make wrapped text look better
+              lineHeight: "1.2",
               display: "flex",
-              alignItems: "center", // Vertical alignment to center
+              alignItems: "center",
             },
           }}
           columnBuffer={5}
         />
       </div>
+      {modalOpen && (
+        <ViewAndEdit
+          open={modalOpen}
+          onClose={handleCloseModal}
+          productId={selectedProductId}
+          product={selectedProductData}
+        />
+      )}
     </div>
   );
 }

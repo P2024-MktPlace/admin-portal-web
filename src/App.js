@@ -3,6 +3,7 @@ import "./App.css";
 import GoogleSignIn from "./Components/GoogleSignin";
 import DashBoard from "./Components/Dashboard";
 import { Box } from "@mui/material";
+import ViewAndEdit from "./Components/ViewAndEdit";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
