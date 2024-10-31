@@ -17,6 +17,8 @@ import AddNewProduct from "./AddNewProduct"; // Import your components
 import PostaNewAd from "./PostaNewAd";
 import ProductSearch from "./ProductSearch";
 import Homepage from "./Homepage";
+import PendingOrders from "./PendingOrders";
+import { Pending } from "@mui/icons-material";
 
 function DashBoard() {
   const theme = useTheme();
@@ -51,6 +53,8 @@ function DashBoard() {
         return <ProductSearch />;
       case "Post an Advertisement":
         return <PostaNewAd />;
+      case "Pending Orders":
+        return <PendingOrders />;
       default:
         return <Homepage />;
     }
@@ -67,6 +71,7 @@ function DashBoard() {
     >
       {[
         { label: "Dashboard", icon: <AddIcon fontSize="small" /> },
+        { label: "Pending Orders", icon: <AddIcon fontSize="small" /> },
         { label: "Product Catalog", icon: <SearchIcon fontSize="small" /> },
         { label: "Inventory Management", icon: <AddIcon fontSize="small" /> },
         { label: "Customer Profiles", icon: <SearchIcon fontSize="small" /> },

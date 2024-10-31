@@ -1,14 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cormorant+Garamond&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cormorant+Garamond&display=swap");
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-
 
 .adminpanel {
   display: flex;
@@ -17,30 +14,25 @@ body {
   height: 100vh; /* Full height of the viewport */
 }
 
-.b
-{
-  border:  1px solid #d4d4d4;
+.b {
+  border: 1px solid #d4d4d4;
   border-radius: 15px;
 }
 
-.bb
-{
-  border-bottom:  1px solid #d4d4d4;
+.bb {
+  border-bottom: 1px solid #d4d4d4;
 }
 
-.bt
-{
-  border-top:  1px solid #d4d4d4;
+.bt {
+  border-top: 1px solid #d4d4d4;
 }
 
-.bl
-{
-  border-left:  1px solid #d4d4d4;
+.bl {
+  border-left: 1px solid #d4d4d4;
 }
 
-.br
-{
-  border-right:  1px solid #d4d4d4;
+.br {
+  border-right: 1px solid #d4d4d4;
 }
 
 .fw-bbx {
@@ -50,8 +42,7 @@ body {
   margin: 0; /* Ensure no extra margin is added */
 }
 
-.fw
-{
+.fw {
   width: 100%;
   margin: 0; /* Ensure no extra margin is added */
 }
@@ -65,8 +56,7 @@ body {
   margin: 10px;
 }
 
-.info
-{
+.info {
   display: block;
   width: 100%; /* Ensure the heading spans the full width */
   font-size: 12px;
@@ -75,57 +65,91 @@ body {
   margin: 10px;
 }
 
-
-.final-price
-{
+.final-price {
   font-size: 30px;
   font-weight: 600;
   text-align: end;
- font-family: "Cormorant Garamond", serif;
+  font-family: "Cormorant Garamond", serif;
 }
 
-.alert-red  
-{
+.alert-red {
   color: #c20b0b;
   font-weight: 600;
 }
 
-.headingname
-{
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.headingname {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 40px;
   font-weight: 500;
-  
 }
 
-.sub-heading-regular
-{
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.sub-heading-regular {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 20px;
   /* font-weight: 500; */
   display: block;
 }
 
-.ordercount
-{
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.ordercount {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 600;
- font-size: 30px;
- display: block;
+  font-size: 30px;
+  display: block;
 }
 
-
-.orderdesc
-{
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.orderdesc {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 600;
- font-size: 14px;
- display: block;
+  font-size: 14px;
+  display: block;
 }
 
-
-.addCategory
-{
+.addCategory {
   width: 150px;
   height: 5px;
+}
+
+.editable-field {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.editable-field:hover {
+  background-color: #f4f5f7;
+}
+
+.order_id {
+  width: 100%; /* Ensure the heading spans the full width */
+  font-weight: 600; /* Optional: Make the heading stand out */
+  font-size: 20px;
+}
+
+.order_created_date {
+  font-weight: 600; /* Optional: Make the heading stand out */
+  font-size: 14px;
+  text-align: left;
+}
+
+.orderfeeTax {
+  width: 100%; /* Ensure the heading spans the full width */
+  font-weight: 400;
+  font-size: 14px;
+  margin: 2px;
+  display: block;
+  color: #808080;
+}
+
+.product_name {
+  display: block;
+  width: 100%; /* Ensure the heading spans the full width */
+  font-weight: 600; /* Optional: Make the heading stand out */
+  font-size: 18px;
+  text-align: left;
+}
+
+.product_info {
+  display: block;
+  width: 100%; /* Ensure the heading spans the full width */
+  font-weight: 600; /* Optional: Make the heading stand out */
+  font-size: 14px;
+  text-align: left;
 }

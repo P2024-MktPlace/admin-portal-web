@@ -1,375 +1,404 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Grid,
-  Typography,
-  IconButton,
-  Stack,
-  TextField,
-  InputAdornment,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
-  Autocomplete,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
+  TextField,
+  Typography,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Alert,
   Button,
+  DialogActions,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import CancelIcon from "@mui/icons-material/Cancel";
-import SaveIcon from "@mui/icons-material/Save";
+import CloseIcon from "@mui/icons-material/Close";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
 import axios from "axios";
 import BASE_API_URL from "../config";
 
-const categories = ["Electronics", "Apparel", "Home Appliances"];
-const tags = ["New Arrival", "Best Seller", "Limited Edition", "Discounted"];
-
 function ViewAndEdit({ open, onClose, productId }) {
   const [fields, setFields] = useState({
-    title: "",
-    price: "",
-    category: "",
-    discount: "",
+    product_title: "",
+    product_price: "",
     product_image_list: "",
-    tags: [],
+    product_description: "",
+    oprice: "", // Added MRP price
+    discount: "", // Added discount
+    active: false, // Added active boolean
   });
 
-  const [originalFields, setOriginalFields] = useState({ ...fields });
-  const [editStates, setEditStates] = useState({
-    title: false,
-    price: false,
-    category: false,
-    discount: false,
-    tags: false,
-    product_image_list: false,
-  });
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState("");
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [tempDescription, setTempDescription] = useState("");
+
+  const [editingOprice, setEditingOprice] = useState(false); // State for editing MRP price
+  const [tempOprice, setTempOprice] = useState(""); // Temp state for MRP price
+
+  const [editingDiscount, setEditingDiscount] = useState(false); // State for editing discount
+  const [tempDiscount, setTempDiscount] = useState(""); // Temp state for discount
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false); // State for confirmation dialog
 
   useEffect(() => {
-    async function fetchProduct() {
-      try {
-        const response = await axios.get(
-          BASE_API_URL + `/product?id=${productId}`
-        );
-
-        const data = response.data;
-        setFields({
-          title: data.product_title,
-          price: data.price,
-          category: data.category,
-          discount: data.discount,
-          product_image_list: data.product_image_list,
-          tags: data.tags || [], // Assuming tags are included in the API response
-        });
-        setOriginalFields({
-          title: data.product_title,
-          price: data.price,
-          category: data.category,
-          discount: data.discount,
-          product_image_list: data.product_image_list,
-          tags: data.tags || [], // Assuming tags are included in the API response
-        });
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      }
-    }
-
-    if (open) {
+    if (open && productId) {
       fetchProduct();
     }
   }, [open, productId]);
 
-  const handleFieldChange = (field) => (event) => {
-    setFields({ ...fields, [field]: event.target.value });
-  };
-
-  const handleTagsChange = (event, value) => {
-    setFields({ ...fields, tags: value });
-  };
-
-  const handleCancelClick = (field) => {
-    setFields({ ...fields, [field]: originalFields[field] });
-    setEditStates({ ...editStates, [field]: false });
-  };
-
-  const handleEditClick = (field) => {
-    if (editStates[field]) {
-      // Call your API to update the value
-      fetch(`{{url}}/update`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          [field]: fields[field],
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Success:", data);
-          setOriginalFields({ ...originalFields, [field]: fields[field] });
-          setEditStates({ ...editStates, [field]: false });
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    } else {
-      setEditStates({ ...editStates, [field]: true });
+  const fetchProduct = async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_API_URL}/get_product?id=${productId}`
+      );
+      const data = response.data;
+      setFields({
+        product_title: data.product_title,
+        product_price: data.product_price,
+        product_image_list: data.product_image_list,
+        product_description: data.product_description,
+        oprice: data.oprice || "", // Set initial MRP price
+        discount: data.discount || "", // Set initial discount
+        active: data.active, // Set initial active status
+      });
+      setTempDescription(data.product_description);
+      setTempTitle(data.product_title); // Set the initial temp title
+      setTempOprice(data.oprice || ""); // Set the initial temp MRP price
+      setTempDiscount(data.discount || ""); // Set the initial temp discount
+    } catch (error) {
+      console.error("Error fetching product:", error);
     }
   };
 
-  const renderTextField = (id, label, helperText) => (
-    <TextField
-      id={id}
-      label={label}
-      variant="outlined"
-      fullWidth
-      size="small"
-      value={fields[id]}
-      onChange={handleFieldChange(id)}
-      helperText={helperText}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            {editStates[id] ? (
-              <>
-                <IconButton
-                  edge="end"
-                  onClick={() => handleEditClick(id)}
-                  color="primary"
-                >
-                  <SaveIcon />
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  onClick={() => handleCancelClick(id)}
-                  color="default"
-                >
-                  <CancelIcon />
-                </IconButton>
-              </>
-            ) : (
-              <IconButton
-                edge="end"
-                onClick={() => handleEditClick(id)}
-                color="default"
-              >
-                <EditIcon />
-              </IconButton>
-            )}
-          </InputAdornment>
-        ),
-        readOnly: !editStates[id],
-        disabled: !editStates[id],
-      }}
-    />
-  );
-
-  const renderSelectField = (id, label) => (
-    <Box display="flex" alignItems="center">
-      <FormControl fullWidth size="small" sx={{ flexGrow: 1 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select
-          id={id}
-          value={fields[id]}
-          label={label}
-          onChange={handleFieldChange(id)}
-          disabled={!editStates[id]}
-        >
-          {categories.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <Box ml={1} display="flex" alignItems="center">
-        {editStates[id] ? (
-          <>
-            <IconButton
-              edge="end"
-              onClick={() => handleEditClick(id)}
-              color="primary"
-            >
-              <SaveIcon />
-            </IconButton>
-            <IconButton
-              edge="end"
-              onClick={() => handleCancelClick(id)}
-              color="default"
-            >
-              <CancelIcon />
-            </IconButton>
-          </>
-        ) : (
-          <IconButton
-            edge="end"
-            onClick={() => handleEditClick(id)}
-            color="default"
-          >
-            <EditIcon />
-          </IconButton>
-        )}
-      </Box>
-    </Box>
-  );
-
-  const renderChipSelectField = (id, label) => {
-    const handleChange = (event, value) => {
-      handleTagsChange(event, value);
-    };
-
-    return (
-      <Box display="flex" alignItems="center">
-        <Autocomplete
-          multiple
-          id={id}
-          options={tags}
-          value={fields[id]}
-          onChange={handleChange}
-          disableCloseOnSelect
-          getOptionLabel={(option) => option}
-          renderTags={(tagValue, getTagProps) =>
-            tagValue.map((option, index) => (
-              <Chip label={option} {...getTagProps({ index })} />
-            ))
-          }
-          renderInput={(params) => (
-            <TextField {...params} variant="outlined" label={label} fullWidth />
-          )}
-          disabled={!editStates[id]}
-          sx={{ flexGrow: 1 }}
-        />
-        <Box ml={1} display="flex" alignItems="center">
-          {editStates[id] ? (
-            <>
-              <IconButton
-                edge="end"
-                onClick={() => handleEditClick(id)}
-                color="primary"
-              >
-                <SaveIcon />
-              </IconButton>
-              <IconButton
-                edge="end"
-                onClick={() => handleCancelClick(id)}
-                color="default"
-              >
-                <CancelIcon />
-              </IconButton>
-            </>
-          ) : (
-            <IconButton
-              edge="end"
-              onClick={() => handleEditClick(id)}
-              color="default"
-            >
-              <EditIcon />
-            </IconButton>
-          )}
-        </Box>
-      </Box>
-    );
+  const handleTitleEdit = () => {
+    setEditingTitle(true);
+    setTempTitle(fields.product_title);
   };
 
+  const handleDescriptionEdit = () => {
+    setEditingDescription(true);
+    setTempDescription(fields.product_description);
+  };
+
+  const handleOpriceEdit = () => {
+    setEditingOprice(true);
+    setTempOprice(fields.oprice);
+  };
+
+  const handleDiscountEdit = () => {
+    setEditingDiscount(true);
+    setTempDiscount(fields.discount);
+  };
+
+  const handleToggleActive = () => {
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmToggleActive = async () => {
+    const newActiveStatus = !fields.active;
+    try {
+      await axios.post(`${BASE_API_URL}/update`, {
+        key: "active",
+        value: newActiveStatus,
+        id: productId,
+      });
+      setFields((prevFields) => ({ ...prevFields, active: newActiveStatus }));
+    } catch (error) {
+      console.error(`Error updating active status:`, error);
+    } finally {
+      setConfirmDialogOpen(false); // Close the confirmation dialog
+    }
+  };
+
+  const handleSave = async (key, value) => {
+    try {
+      await axios.post(`${BASE_API_URL}/update`, {
+        key: key,
+        value: value,
+        id: productId,
+      });
+      setFields((prevFields) => ({ ...prevFields, [key]: value }));
+      if (key === "product_title") setEditingTitle(false);
+      if (key === "product_description") setEditingDescription(false);
+      if (key === "oprice") {
+        setEditingOprice(false);
+        setFields((prevFields) => ({ ...prevFields, oprice: value }));
+      }
+      if (key === "discount") {
+        setEditingDiscount(false);
+        setFields((prevFields) => ({ ...prevFields, discount: value }));
+      }
+    } catch (error) {
+      console.error(`Error updating product ${key}:`, error);
+    }
+  };
+
+  // Calculate the current price based on oprice and discount
+  const calculateCurrentPrice = () => {
+    const oprice = parseFloat(fields.oprice) || 0;
+    const discount = parseFloat(fields.discount) || 0;
+    const currentPrice = oprice - oprice * (discount / 100);
+    return currentPrice.toFixed(2); // Return the current price rounded to two decimal places
+  };
+
+  // Update title dynamically based on price changes
+  const updatedTitle = `${productId} - ${fields.product_title}`;
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>View / Edit Product Details : {productId} </DialogTitle>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          <span
+            style={{
+              display: "inline-block",
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: fields.active ? "green" : "red", // Green for active, red for inactive
+              marginRight: 8,
+              cursor: "pointer",
+            }}
+            onClick={handleToggleActive}
+          />
+          {editingTitle ? (
+            <TextField
+              value={tempTitle}
+              onChange={(e) => setTempTitle(e.target.value)}
+              autoFocus
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handleSave("product_title", tempTitle)}
+                      color="success"
+                    >
+                      <CheckIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => setEditingTitle(false)}
+                      color="error"
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          ) : (
+            <Typography
+              component="span"
+              sx={{
+                cursor: "pointer",
+                transition: "background-color 0.3s",
+                "&:hover": { backgroundColor: "#f4f5f7" },
+              }}
+              onClick={handleTitleEdit}
+            >
+              {updatedTitle}
+            </Typography>
+          )}
+        </Typography>
+
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{ position: "absolute", right: 8, top: 8 }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
       <DialogContent>
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
+          {/* Left Div for Product Images */}
           <Grid item xs={12} sm={4}>
-            <Stack spacing={3}>
-              <Box>
-                <Grid item xs={12}>
-                  <Typography
-                    mb={1}
+            <Grid container spacing={2}>
+              {fields.product_image_list.split(",").map((image, index) => (
+                <Grid item xs={6} key={index}>
+                  <Box
                     sx={{
-                      fontFamily:
-                        "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                      fontSize: "20px",
-                      textAlign: "left",
-                      fontWeight: 500,
+                      width: 70, // Increased width
+                      height: 70, // Increased height
+                      borderRadius: 1,
+                      overflow: "hidden",
+                      border: "1px solid #ccc", // Optional: Add a border for better visibility
                     }}
                   >
-                    Thumbnail
-                  </Typography>
-                  <Box
-                    display="flex"
-                    flexWrap="wrap"
-                    justifyContent="center"
-                    gap={1}
-                  >
-                    {fields.product_image_list
-                      .split(",")
-                      .map((image, index) => (
-                        <Box key={index} width={70} height={70}>
-                          <img
-                            src={image}
-                            alt={`Thumbnail ${index + 1}`}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              borderRadius: "4px", // optional: for rounded corners
-                            }}
-                          />
-                        </Box>
-                      ))}
+                    <img
+                      src={image}
+                      alt={`Product Image ${index + 1}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
                   </Box>
                 </Grid>
-              </Box>
-            </Stack>
+              ))}
+            </Grid>
           </Grid>
+
+          {/* Right Div for Product Details */}
           <Grid item xs={12} sm={8}>
             <Stack spacing={2}>
-              <Box sx={{ mb: 2 }} p={3}>
-                <Grid item xs={12}>
-                  <Typography
-                    mb={1}
-                    sx={{
-                      fontFamily:
-                        "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                      fontSize: "20px",
-                      textAlign: "left",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Product Details
-                  </Typography>
-                </Grid>
-                <Stack spacing={2} mt={2}>
-                  {renderTextField(
-                    "title",
-                    "Product Name",
-                    "A product name is required and recommended to be unique."
-                  )}
-                  {renderSelectField("category", "Category")}
-                  {renderChipSelectField("tags", "Tags")}
-                  {renderTextField(
-                    "price",
-                    "Base Price",
-                    "Set product base price."
-                  )}
-                  {renderTextField(
-                    "discount",
-                    "Discount",
-                    "Set product discount."
-                  )}
-                </Stack>
-              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Product Description
+              </Typography>
+              {editingDescription ? (
+                <TextField
+                  value={tempDescription}
+                  onChange={(e) => setTempDescription(e.target.value)}
+                  multiline
+                  rows={2}
+                  maxRows={4}
+                  autoFocus
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() =>
+                            handleSave("product_description", tempDescription)
+                          }
+                          color="success"
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => setEditingDescription(false)}
+                          color="error"
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              ) : (
+                <Typography
+                  component="span"
+                  sx={{
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                    "&:hover": { backgroundColor: "#f4f5f7" },
+                  }}
+                  onClick={handleDescriptionEdit}
+                >
+                  {fields.product_description}
+                </Typography>
+              )}
+
+              {/* MRP Price Section */}
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                MRP Price
+              </Typography>
+              {editingOprice ? (
+                <TextField
+                  value={tempOprice}
+                  onChange={(e) => setTempOprice(e.target.value)}
+                  autoFocus
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => handleSave("price", tempOprice)}
+                          color="success"
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => setEditingOprice(false)}
+                          color="error"
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              ) : (
+                <Typography
+                  component="span"
+                  sx={{
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                    "&:hover": { backgroundColor: "#f4f5f7" },
+                  }}
+                  onClick={handleOpriceEdit}
+                >
+                  {fields.oprice}
+                </Typography>
+              )}
+
+              {/* Discount Section */}
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                Discount
+              </Typography>
+              {editingDiscount ? (
+                <TextField
+                  value={tempDiscount}
+                  onChange={(e) => setTempDiscount(e.target.value)}
+                  autoFocus
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => handleSave("discount", tempDiscount)}
+                          color="success"
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => setEditingDiscount(false)}
+                          color="error"
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              ) : (
+                <Typography
+                  component="span"
+                  sx={{
+                    cursor: "pointer",
+                    transition: "background-color 0.3s",
+                    "&:hover": { backgroundColor: "#f4f5f7" },
+                  }}
+                  onClick={handleDiscountEdit}
+                >
+                  {fields.discount}
+                </Typography>
+              )}
             </Stack>
           </Grid>
         </Grid>
       </DialogContent>
-      {/* <DialogActions>
-        <Button onClick={onClose} color="default">
-          Close
-        </Button>
-      </DialogActions> */}
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to {fields.active ? "deactivate" : "activate"}{" "}
+            this product?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmToggleActive} color="primary">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }
