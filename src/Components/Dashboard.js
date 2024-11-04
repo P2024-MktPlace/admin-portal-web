@@ -19,12 +19,21 @@ import ProductSearch from "./ProductSearch";
 import Homepage from "./Homepage";
 import PendingOrders from "./PendingOrders";
 import { Pending } from "@mui/icons-material";
+import OrderCard from "./OrderCard";
+import OrderDetails from "./OrderDetails";
 
 function DashBoard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [selectedComponent, setSelectedComponent] = useState("Add New Product");
   const [open, setOpen] = useState(false);
+
+  const [selectedItem, setSelectedItem] = useState(null); // Track selected item data
+
+  const handleSelectOrder = (item) => {
+    setSelectedItem(item);
+    setSelectedComponent("OrderDetails");
+  };
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -54,7 +63,9 @@ function DashBoard() {
       case "Post an Advertisement":
         return <PostaNewAd />;
       case "Pending Orders":
-        return <PendingOrders />;
+        return <PendingOrders onSelectOrder={handleSelectOrder} />;
+      case "OrderDetails":
+        return <OrderDetails item={selectedItem} />;
       default:
         return <Homepage />;
     }
@@ -101,7 +112,6 @@ function DashBoard() {
               <Typography
                 fontWeight={600}
                 fontSize={12}
-                className="heading_name"
                 color={selectedComponent === item.label ? "black" : "inherit"}
               >
                 {item.label}

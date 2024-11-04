@@ -51,7 +51,6 @@ function Homepage() {
             alignItems: "flex-start", // Align content to the top
             display: "flex",
             flexDirection: "column", // Stack elements vertically
-            paddingLeft: "25px", // Add some padding for spacing
           }}
         >
           <Typography

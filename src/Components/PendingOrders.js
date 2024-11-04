@@ -14,7 +14,7 @@ import BASE_API_URL from "../config";
 import OrderCardDetails from "./OrderCardDetails";
 import { debounce } from "lodash";
 
-const PendingOrders = () => {
+const PendingOrders = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,10 +75,11 @@ const PendingOrders = () => {
   return (
     <Box
       sx={{
-        height: "auto",
+        flex: "1 1 0", // Flex-grow, flex-shrink, flex-basis
+        justifyContent: "flex-start", // Align content to the left
+        alignItems: "flex-start", // Align content to the top
         display: "flex",
-        flexDirection: "column",
-        padding: isSmallScreen ? "15px" : "25px",
+        flexDirection: "column", // Stack elements vertically
       }}
     >
       <Typography
@@ -107,7 +108,7 @@ const PendingOrders = () => {
       <Grid container spacing={2} direction="column">
         {currentOrders.map((item) => (
           <Grid item key={item.order_id}>
-            <OrderCardDetails item={item} />
+            <OrderCardDetails item={item} onClick={() => onSelectOrder(item)} />
           </Grid>
         ))}
       </Grid>

@@ -1,28 +1,40 @@
 import { useState, useEffect } from "react";
+
 import {
   Card,
   CardContent,
   Box,
   Typography,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Divider,
   Stack,
-  Grid,
+  Snackbar,
+  Alert,
+  TextField,
 } from "@mui/material";
 import axios from "axios";
 import BASE_API_URL from "../config";
-import OrderProduct from "./OrderProduct";
-import EventIcon from "@mui/icons-material/Event";
-import CurrencyRupeeOutlinedIcon from "@mui/icons-material/CurrencyRupeeOutlined";
 
-const OrderCardDetails = ({ item }) => {
-  const [status, setStatus] = useState(item.status);
+import EventIcon from "@mui/icons-material/Event";
+import OrderCard from "./OrderCard";
+
+const OrderCardDetails = ({ item, onClick }) => {
+  const [status, setStatus] = useState(item.order_status);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const handleChange = async (event) => {
     const newStatus = event.target.value;
+
+    const confirmChange = window.confirm(
+      `Do you want to move the status from ${status} to ${newStatus}?`
+    );
+
+    if (!confirmChange) {
+      return; // If the user clicks "No," exit the function
+    }
+
     setStatus(newStatus);
 
     try {
@@ -33,6 +45,7 @@ const OrderCardDetails = ({ item }) => {
         id: item.order_id,
       });
       console.log("Status updated successfully");
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -44,6 +57,7 @@ const OrderCardDetails = ({ item }) => {
         width: "100%", // Full width of the parent container
         boxShadow: 2,
       }}
+      onClick={onClick}
     >
       <CardContent>
         <Stack>
@@ -57,37 +71,14 @@ const OrderCardDetails = ({ item }) => {
                 textAlign: "left",
               }}
             >
-              <span className="order_id">Order #{item.order_id}</span>
+              <span className="order_id">{item.order_id}</span>
             </Box>
             <Box
               display="flex"
-              justifyContent="space-between"
-              sx={{ width: "30%" }}
+              justifyContent="flex-end" // Align content to the right
+              sx={{ width: "30%", textAlign: "right" }}
             >
-              {/* Left Side - Amount */}
-              <Box
-                display="flex" // Flex display for alignment
-                alignItems="center" // Vertically center content
-                justifyContent="flex-end" // Align content to the right
-                width="70%" // Set appropriate width
-                sx={{
-                  textAlign: "right",
-                }}
-              >
-                <span className="order_id">INR {item.amount} /-</span>
-              </Box>
-
-              {/* Right Side - Fee and Tax */}
-              <Box
-                display="flex"
-                flexDirection="column"
-                width="30%" // Set width to fit appropriately
-              >
-                <Box display="flex" justifyContent="flex-end">
-                  <span className="orderfeeTax">Fee: {item.fee}</span>
-                  <span className="orderfeeTax">Tax: {item.tax}</span>
-                </Box>
-              </Box>
+              <span className="order_id">INR {item.amount} /-</span>
             </Box>
           </Box>
 
@@ -122,7 +113,7 @@ const OrderCardDetails = ({ item }) => {
               size="small"
             >
               <Select
-                value={item.order_status}
+                value={status}
                 onChange={handleChange}
                 sx={{
                   fontSize: "12px",
@@ -137,17 +128,30 @@ const OrderCardDetails = ({ item }) => {
             </FormControl>
           </Box>
 
-          <Box pt={1}>
+          <Box m={1}>
             <Divider />
-
-            {/* <Stack container direction="column">
+            <Stack container direction="column" mt={2}>
               {item.ordproducts.map((item) => (
-                <OrderProduct item={item} />
+                <OrderCard item={item} />
               ))}
-            </Stack> */}
+            </Stack>
           </Box>
         </Stack>
       </CardContent>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000} // Snackbar auto hides after 3 seconds
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          Status updated successfully!
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };
