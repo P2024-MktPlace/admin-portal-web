@@ -11,8 +11,8 @@ RUN npm install
 COPY . .
 RUN npm run build --production
 
-rm -rf build/static/js/*.map
-rm -rf build/static/css/*.map
+# Remove source map files (if they exist)
+RUN rm -rf /app/build/static/js/*.map /app/build/static/css/*.map
 
 # Step 2: Serve the app using NGINX
 FROM nginx:alpine
