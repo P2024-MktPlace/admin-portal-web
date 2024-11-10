@@ -9,7 +9,10 @@ RUN npm install
 
 # Copy the rest of the application and build it
 COPY . .
-RUN npm run build
+RUN npm run build --production
+
+rm -rf build/static/js/*.map
+rm -rf build/static/css/*.map
 
 # Step 2: Serve the app using NGINX
 FROM nginx:alpine
