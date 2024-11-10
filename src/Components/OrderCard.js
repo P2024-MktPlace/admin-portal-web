@@ -1,4 +1,4 @@
-import { Box, Chip, Paper, Stack } from "@mui/material";
+import { Box } from "@mui/material";
 
 const OrderCard = ({ item }) => {
   console.log(item);
@@ -55,10 +55,10 @@ const OrderCard = ({ item }) => {
         <span className="order_prodid">Product ID: {item.product_id}</span>
         <span className="order_name">{item.product_name}</span>
 
-        <Box>
+        {/* <Box>
           <span className="order_name">Rs. {item.price} </span>
           <span className="order_discount"> -{item.discount}% </span>
-        </Box>
+        </Box> */}
         <span className="order_fprice">Rs. 1800.00</span>
       </Box>
     </Box>

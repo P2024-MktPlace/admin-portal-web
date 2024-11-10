@@ -1,29 +1,47 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, useMediaQuery, useTheme, Typography, Paper } from "@mui/material";
-import { FaCheckCircle, FaSpinner, FaBoxOpen, FaTruck } from "react-icons/fa"; // Import icons for demonstration
+import { FaCheckCircle, FaSpinner, FaBoxOpen, FaTruck } from "react-icons/fa";
+import BASE_API_URL from "../config";
 
 function Homepage() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Check if the screen is small (mobile)
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [response, setResponse] = useState(null);
 
-  const statusData = [
-    { key: "New", value: 5 },
-    { key: "Processing", value: 10 },
-    { key: "Shipped", value: 20 },
-  ];
+  useEffect(() => {
+    const fetchOrderCount = async () => {
+      try {
+        const res = await fetch(`${BASE_API_URL}/getordercount`);
+        const data = await res.json();
+        setResponse(data); // set the response data to state
+      } catch (error) {
+        console.error("Error fetching order count:", error);
+      }
+    };
+
+    fetchOrderCount();
+  }, []);
+
+  // Map the response data to statusData format
+  const statusData = response
+    ? [
+        { key: "Total Orders", value: response.total_orders },
+        { key: "Pending", value: response.pending_orders },
+        { key: "In Progress", value: response.in_progress_orders },
+        { key: "Completed (This Month)", value: response.completed_orders },
+      ]
+    : [];
 
   const getIcon = (key) => {
     switch (key) {
-      case "New":
+      case "Pending":
         return <FaSpinner style={{ fontSize: "24px", color: "#FF9800" }} />;
-      case "Processing":
+      case "In Progress":
         return <FaBoxOpen style={{ fontSize: "24px", color: "#FFC107" }} />;
-      case "Shipped":
-        return <FaTruck style={{ fontSize: "24px", color: "#2196F3" }} />;
-      case "Delivered":
+      case "Completed (This Month)":
         return <FaCheckCircle style={{ fontSize: "24px", color: "#4CAF50" }} />;
       default:
-        return null;
+        return <FaSpinner style={{ fontSize: "24px", color: "#2196F3" }} />;
     }
   };
 
@@ -38,19 +56,18 @@ function Homepage() {
       {/* Two Vertical Boxes under Main Box */}
       <Box
         sx={{
-          flex: "1 1 0", // Split the remaining space evenly
+          flex: "1 1 0",
           display: "flex",
-
-          flexDirection: isMobile ? "column" : "row", // Stack vertically on mobile, row on larger screens
+          flexDirection: isMobile ? "column" : "row",
         }}
       >
         <Box
           sx={{
-            flex: "1 1 0", // Flex-grow, flex-shrink, flex-basis
-            justifyContent: "flex-start", // Align content to the left
-            alignItems: "flex-start", // Align content to the top
+            flex: "1 1 0",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
             display: "flex",
-            flexDirection: "column", // Stack elements vertically
+            flexDirection: "column",
           }}
         >
           <Typography
@@ -73,31 +90,21 @@ function Homepage() {
             }}
             className="sub-heading-regular"
           >
-            Welcome, CHETHAN S !
+            Welcome, CHETHAN S!
           </Typography>
         </Box>
-        <Box
-          sx={{
-            flex: 1,
-          }}
-        >
+        <Box sx={{ flex: 1 }}>
           {/* Four Vertical Boxes */}
           <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "16px",
-            }}
+            sx={{ display: "flex", flexDirection: "column", padding: "16px" }}
           >
-            {/* Main Box */}
-
             {/* Container for Horizontal Boxes */}
             <Box
               sx={{
                 display: "flex",
                 flexDirection: "row",
                 gap: "16px",
-                justifyContent: "space-between", // Ensure items are evenly spaced
+                justifyContent: "space-between",
                 flexWrap: "wrap",
                 padding: "16px",
               }}
@@ -107,7 +114,7 @@ function Homepage() {
                   key={index}
                   elevation={3}
                   sx={{
-                    width: "calc(33% - 16px)", // Adjust width to fit 4 items in a row with gaps
+                    width: "calc(33% - 16px)",
                     display: "flex",
                     flexDirection: "column",
                     borderRadius: "10px",
@@ -128,7 +135,6 @@ function Homepage() {
                       height: "100%",
                     }}
                   >
-                    {/* Icon based on status */}
                     <Box sx={{ marginBottom: "8px" }}>
                       {getIcon(status.key)}
                     </Box>

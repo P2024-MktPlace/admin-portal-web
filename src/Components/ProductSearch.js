@@ -22,7 +22,9 @@ function ProductSearch() {
         const data = response.data;
 
         if (data.length > 0) {
-          const keys = Object.keys(data[0]);
+          const keys = Object.keys(data[0]).filter(
+            (key) => key !== "product_image_list"
+          ); // Skip 'product_image_list'
           const generatedColumns = keys.map((key) => ({
             field: key,
             headerName:
@@ -42,22 +44,15 @@ function ProductSearch() {
                 );
               }
 
-              if (key === "product_image_list" && params.value) {
+              if (key === "active") {
                 return (
-                  <div>
-                    {params.value.split(",").map((url, index) => (
-                      <img
-                        key={index}
-                        src={url}
-                        alt={`Product ${index}`}
-                        style={{
-                          width: 60,
-                          height: 60,
-                          marginRight: 5,
-                          borderRadius: 4,
-                        }}
-                      />
-                    ))}
+                  <div
+                    style={{
+                      color: params.value ? "green" : "red",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {params.value ? "Active" : "Not Active"}
                   </div>
                 );
               }

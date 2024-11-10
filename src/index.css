@@ -189,3 +189,10 @@ body {
   font-weight: 600;
   text-transform: uppercase;
 }
+
+
+.inline-editable-textfield input::placeholder {
+  color: #aaa;           /* Light gray color for placeholder */
+  font-style: italic;    /* Optional: make placeholder italic */
+  font-weight: lighter;  /* Optional: lighter font weight */
+}

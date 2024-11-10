@@ -5,9 +5,16 @@ import {
   Grid,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Snackbar,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
   useMediaQuery,
@@ -18,10 +25,19 @@ import { useState } from "react";
 import EventIcon from "@mui/icons-material/Event";
 import { xcss } from "@atlaskit/primitives";
 import Textfield from "@atlaskit/textfield";
-import InlineEdit from "@atlaskit/inline-edit";
+import InlineEdit, { InlineEditableTextfield } from "@atlaskit/inline-edit";
 import OrderCard from "./OrderCard";
 import { useTheme } from "@mui/material/styles";
 import "./../index.css";
+
+import Form, {
+  Field,
+  FormFooter,
+  FormHeader,
+  FormSection,
+  Label,
+  RequiredAsterisk,
+} from "@atlaskit/form";
 
 import PendingIcon from "@mui/icons-material/HourglassEmpty";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -39,15 +55,33 @@ const readViewContainerStyles = xcss({
 });
 
 function OrderDetails({ item }) {
-  const bgcolor = "#f7f7f7";
+  const bgcolor = "#f5f5f5";
   const [status, setStatus] = useState(item.order_status);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [sellerAddress, setSellerAddress] = useState("sellerAddress");
-  const [address, setAddress] = useState("address");
+  const [sellerAddress, setSellerAddress] = useState(
+    "Chethan S, ABC Shop, Kanadal Road, Kote, Chikkamagaluru, Karnataka 577101"
+  );
+  const [address, setAddress] = useState(
+    "Chethan S, Ajjegowda Compound, Kanadal Road, Kote, Chikkamagaluru, Karnataka 577101"
+  );
   const [deliveryPartner, setDeliveryPartner] = useState("Indian Speed Post");
   const [trackingId, setTrackingId] = useState("52525252");
   const [expectedDeliveryDate, setExpectedDeliveryDate] =
     useState("25-05-2024");
+
+  const paymentData = [
+    {
+      paymentId: "P12345",
+      orderId: "O12345",
+      invoiceId: "I12345",
+      method: "Credit Card",
+      amount: "₹1000",
+      fee: "₹50",
+      tax: "₹18",
+      date: "2024-11-10",
+    },
+    // You can add more rows as needed
+  ];
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -214,7 +248,7 @@ function OrderDetails({ item }) {
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <Box
-                    p={1}
+                    p={2}
                     sx={{
                       backgroundColor: bgcolor,
                       borderRadius: 1,
@@ -223,30 +257,22 @@ function OrderDetails({ item }) {
                     }}
                   >
                     <Typography fontWeight={600} fontSize={14}>
-                      Seller Address
+                      Address (Seller)
                     </Typography>
-                    <InlineEdit
+                    <InlineEditableTextfield
                       defaultValue={sellerAddress}
-                      editButtonLabel="Edit Address"
-                      editView={({ errorMessage, ...fieldProps }) => (
-                        <Textfield {...fieldProps} autoFocus fullWidth />
-                      )}
-                      readView={() => (
-                        <Box p={1} sx={readViewContainerStyles}>
-                          {sellerAddress}
-                        </Box>
-                      )}
-                      onConfirm={(newAddress) => {
-                        setSellerAddress(newAddress);
-                        handleSellerAddressChange(newAddress);
-                      }}
+                      editButtonLabel={sellerAddress}
+                      onConfirm={(value) => handleSellerAddressChange(value)}
+                      placeholder={
+                        sellerAddress === "" ? "Enter address" : sellerAddress
+                      } // Placeholder for empty string
                     />
                   </Box>
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
                   <Box
-                    p={1}
+                    p={2}
                     sx={{
                       backgroundColor: bgcolor,
                       borderRadius: 1,
@@ -255,35 +281,20 @@ function OrderDetails({ item }) {
                     }}
                   >
                     <Typography fontWeight={600} fontSize={14}>
-                      Shipping Address
+                      Address (Buyer)
                     </Typography>
-                    <InlineEdit
+                    <InlineEditableTextfield
                       defaultValue={address}
-                      editButtonLabel="Edit Address"
-                      editView={({ errorMessage, ...fieldProps }) => (
-                        <Textfield
-                          aria-multiline
-                          {...fieldProps}
-                          autoFocus
-                          fullWidth
-                        />
-                      )}
-                      readView={() => (
-                        <Box p={1} sx={readViewContainerStyles}>
-                          {address}
-                        </Box>
-                      )}
-                      onConfirm={(newAddress) => {
-                        setAddress(newAddress);
-                        handleAddressChange(newAddress);
-                      }}
+                      editButtonLabel={address}
+                      onConfirm={(value) => handleAddressChange(value)}
+                      placeholder={address === "" ? "Enter address" : address} // Placeholder for empty string
                     />
                   </Box>
                 </Grid>
               </Grid>
             </Grid>
 
-            <Box p={1} sx={{ backgroundColor: bgcolor, borderRadius: 1 }}>
+            <Box p={2} sx={{ backgroundColor: bgcolor, borderRadius: 1 }}>
               <Box
                 sx={{
                   textAlign: "left",
@@ -296,11 +307,51 @@ function OrderDetails({ item }) {
                   Order Items
                 </Typography>
               </Box>
-              <Stack direction="column" spacing={2} m={1}>
+              <Stack mt={1} mb={1} direction="column" spacing={2}>
                 {item.ordproducts.map((product, index) => (
                   <OrderCard key={index} item={product} />
                 ))}
               </Stack>
+            </Box>
+
+            <Box
+              sx={{
+                backgroundColor: bgcolor,
+                borderRadius: 1,
+                textAlign: "left",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Payment ID</TableCell>
+                    <TableCell>Order ID</TableCell>
+                    <TableCell>Invoice ID</TableCell>
+                    <TableCell>Method of Payment</TableCell>
+                    <TableCell>Amount</TableCell>
+                    <TableCell>Fee</TableCell>
+                    <TableCell>Tax</TableCell>
+                    <TableCell>Date</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paymentData.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{row.paymentId}</TableCell>
+                      <TableCell>{row.orderId}</TableCell>
+                      <TableCell>{row.invoiceId}</TableCell>
+                      <TableCell>{row.method}</TableCell>
+                      <TableCell>{row.amount}</TableCell>
+                      <TableCell>{row.fee}</TableCell>
+                      <TableCell>{row.tax}</TableCell>
+                      <TableCell>{row.date}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </Box>
           </Stack>
         </Grid>
@@ -332,119 +383,62 @@ function OrderDetails({ item }) {
                 </Box>
               </Box>
 
-              <Box p={2} sx={{ backgroundColor: bgcolor, borderRadius: 2 }}>
+              <Box
+                p={2}
+                sx={{
+                  backgroundColor: bgcolor,
+                  borderRadius: 2,
+                  width: "100%",
+                }}
+              >
                 <Typography fontWeight={600} fontSize={14}>
                   Delivery Details
                 </Typography>
-                <Stack spacing={1.5}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#333", fontWeight: 500, width: "150px" }}
-                    >
-                      Delivery partner:
-                    </Typography>
-                    <InlineEdit
-                      defaultValue={deliveryPartner}
-                      editButtonLabel="Edit Tracking ID"
-                      editView={({ errorMessage, ...fieldProps }) => (
-                        <TextField
-                          {...fieldProps}
-                          autoFocus
-                          fullWidth
-                          size="small"
-                        />
-                      )}
-                      readView={() => (
-                        <Box
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            minHeight: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          {deliveryPartner}
-                        </Box>
-                      )}
-                      onConfirm={(deliveryPartner) =>
-                        setDeliveryPartner(deliveryPartner)
-                      }
-                    />
-                  </Stack>
 
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#333", fontWeight: 500, width: "150px" }}
-                    >
-                      Tracking ID:
-                    </Typography>
-                    <InlineEdit
-                      defaultValue={trackingId}
-                      editButtonLabel="Edit Tracking ID"
-                      editView={({ errorMessage, ...fieldProps }) => (
-                        <TextField
-                          {...fieldProps}
-                          autoFocus
-                          fullWidth
-                          size="small"
-                        />
-                      )}
-                      readView={() => (
-                        <Box
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            minHeight: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          {trackingId}
-                        </Box>
-                      )}
-                      onConfirm={(newTrackingId) =>
-                        setTrackingId(newTrackingId)
-                      }
-                    />
-                  </Stack>
+                <InlineEditableTextfield
+                  defaultValue={deliveryPartner}
+                  aria-required={true}
+                  label="Delivery Partner"
+                  editButtonLabel={deliveryPartner || setDeliveryPartner}
+                  // onConfirm={(value) => handleChange(value)}
+                  placeholder={
+                    deliveryPartner === ""
+                      ? "Enter Delivery Partner"
+                      : deliveryPartner
+                  } // Placeholder for empty string
+                />
 
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#333", fontWeight: 500, width: "150px" }}
-                    >
-                      Expected Delivery Date:
-                    </Typography>
-                    <InlineEdit
-                      defaultValue={expectedDeliveryDate}
-                      editButtonLabel="Edit Tracking ID"
-                      editView={({ errorMessage, ...fieldProps }) => (
-                        <TextField
-                          {...fieldProps}
-                          autoFocus
-                          fullWidth
-                          size="small"
-                        />
-                      )}
-                      readView={() => (
-                        <Box
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            minHeight: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          {expectedDeliveryDate}
-                        </Box>
-                      )}
-                      onConfirm={(expectedDeliveryDate) =>
-                        setExpectedDeliveryDate(expectedDeliveryDate)
-                      }
-                    />
-                  </Stack>
-                </Stack>
+                <Box
+                  sx={{
+                    display: "block",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    width: "100%",
+                  }}
+                >
+                  <InlineEditableTextfield
+                    label="Delivery Tracking ID"
+                    defaultValue={trackingId}
+                    editButtonLabel={trackingId}
+                    onConfirm={(value) => handleSellerAddressChange(value)}
+                    placeholder={
+                      trackingId === "" ? "Enter Tracking ID" : trackingId
+                    } // Placeholder for empty string
+                    size="small"
+                  />
+                  <InlineEditableTextfield
+                    label="Expected Date of Delivery:"
+                    defaultValue={expectedDeliveryDate}
+                    editButtonLabel={expectedDeliveryDate}
+                    onConfirm={(value) => handleSellerAddressChange(value)}
+                    placeholder={
+                      expectedDeliveryDate === ""
+                        ? "Enter Date of Delivery"
+                        : expectedDeliveryDate
+                    } // Placeholder for empty string
+                    sx={{ fontSize: "12px" }}
+                  />
+                </Box>
               </Box>
             </Stack>
           </Box>

@@ -1,26 +1,13 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Card,
-  Button,
-  Grid,
-  Stack,
-  useMediaQuery,
-} from "@mui/material";
+import { useState, useEffect, useMemo } from "react";
+import { Box, Typography, TextField } from "@mui/material";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import axios from "axios";
 import BASE_API_URL from "../config";
-import OrderCardDetails from "./OrderCardDetails";
 import { debounce } from "lodash";
 
 const PendingOrders = ({ onSelectOrder }) => {
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const ordersPerPage = 20;
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("sm")); // Responsive design
 
   // Fetch orders on component mount
   useEffect(() => {
@@ -40,13 +27,12 @@ const PendingOrders = ({ onSelectOrder }) => {
     () =>
       debounce((query) => {
         setSearchQuery(query);
-        setCurrentPage(1); // Reset to the first page
       }, 300),
     []
   );
 
-  // Filtered orders based on the search query
-  const filteredOrders = useMemo(
+  // Filtered rows based on the search query
+  const filteredRows = useMemo(
     () =>
       orders.filter((order) =>
         order.order_id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -54,32 +40,24 @@ const PendingOrders = ({ onSelectOrder }) => {
     [searchQuery, orders]
   );
 
-  // Pagination logic
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = useMemo(
-    () => filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder),
-    [filteredOrders, indexOfFirstOrder, indexOfLastOrder]
-  );
-
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-
-  const handleNextPage = useCallback(() => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  }, [currentPage, totalPages]);
-
-  const handlePreviousPage = useCallback(() => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  }, [currentPage]);
+  // Define the columns for the DataGrid
+  const columns = [
+    { field: "order_id", headerName: "Order ID", flex: 1 },
+    { field: "order_status", headerName: "Order Status", flex: 1 },
+    { field: "amount", headerName: "Amount", flex: 1 },
+    {
+      field: "created_at",
+      headerName: "Created At",
+      flex: 1,
+    },
+  ];
 
   return (
     <Box
       sx={{
-        flex: "1 1 0", // Flex-grow, flex-shrink, flex-basis
-        justifyContent: "flex-start", // Align content to the left
-        alignItems: "flex-start", // Align content to the top
+        flex: "1 1 0",
         display: "flex",
-        flexDirection: "column", // Stack elements vertically
+        flexDirection: "column",
       }}
     >
       <Typography
@@ -87,10 +65,7 @@ const PendingOrders = ({ onSelectOrder }) => {
           fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           fontSize: "40px",
           fontWeight: 500,
-          display: "block",
-          justifyContent: "flex-start",
-          alignItems: "flex-start",
-          display: "flex",
+          marginBottom: "20px",
         }}
         className="headingname"
       >
@@ -105,39 +80,38 @@ const PendingOrders = ({ onSelectOrder }) => {
         sx={{ marginBottom: "20px" }}
       />
 
-      <Grid container spacing={2} direction="column">
-        {currentOrders.map((item) => (
-          <Grid item key={item.order_id}>
-            <OrderCardDetails item={item} onClick={() => onSelectOrder(item)} />
-          </Grid>
-        ))}
-      </Grid>
-
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={2}
-        sx={{ marginTop: "20px" }}
-      >
-        <Button
-          variant="contained"
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-        <Typography>
-          Page {currentPage} of {totalPages}
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </Stack>
+      <div style={{ flexGrow: 1 }}>
+        <DataGrid
+          rows={filteredRows}
+          columns={columns}
+          components={{ Toolbar: GridToolbar }}
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          autoHeight
+          disableSelectionOnClick
+          onRowClick={(params) => onSelectOrder(params.row)}
+          getRowId={(row) => row.order_id} // Specify order_id as the unique ID for each row
+          sx={{
+            backgroundColor: "#fff",
+            borderRadius: 2,
+            boxShadow: 3,
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#f0f0f0",
+            },
+            "& .MuiDataGrid-columnHeaderTitle": {
+              fontWeight: "bold",
+            },
+            "& .MuiDataGrid-cell": {
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+              lineHeight: "1.2",
+              display: "flex",
+              alignItems: "center",
+            },
+          }}
+          columnBuffer={5}
+        />
+      </div>
     </Box>
   );
 };
