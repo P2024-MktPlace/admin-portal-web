@@ -4,6 +4,8 @@ steps:
     args:
       [
         "build",
+        "--build-arg",
+        "BASE_API_URL=${_BASE_API_URL}",
         "-t",
         "gcr.io/$PROJECT_ID/jewel-admin-${_BRANCH_NAME}:latest",
         ".",
@@ -21,7 +23,6 @@ steps:
       - "jewel-admin-${_BRANCH_NAME}"
       - "--image"
       - "gcr.io/$PROJECT_ID/jewel-admin-${_BRANCH_NAME}:latest"
-      - "BASE_API_URL=${_BASE_API_URL}"
       - "--platform"
       - "managed"
       - "--region"
