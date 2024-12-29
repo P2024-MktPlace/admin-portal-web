@@ -1,6 +1,6 @@
 const BASE_API_URL = process.env.REACT_APP_BASE_API_URL;
 console.log("base api url");
-console.log(BASE_API_URL);
+console.log(process.env);
 
 // // config.js
 // const BASE_API_URL =
